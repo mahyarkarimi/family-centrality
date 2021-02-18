@@ -53,14 +53,36 @@ def remove(G: dict, v) -> dict:
     G.pop(v) # removing node v from graph
     for u in v_edges:
         # removing edges in graph which has been connected to node v
-        G.get(u).remove(v)
+        G.get(u, []).remove(v)
 
     return G
 
 
-def combine(G: dict, v):
-    pass
+def set_contraction(G: dict, U: list):
+    merged_U_edges = []
+    for u in U:
+        u_edges = G.get(u)
+        merged_U_edges.extend([i for i in u_edges if not U.__contains__(i)])
+        G = remove(G, u)
 
-print('vertex: ', vertex)
-print(json.dumps(remove(data_dict, vertex), indent=4))
+    new_node_name = random.choice(U)
+    G[new_node_name] = merged_U_edges
+    for i in merged_U_edges:
+        G.get(i).append(new_node_name)
+    return G
+
+
+def test_set_contraction():
+    graph = {
+        'v': ['u', 'u', 'u', 'y'],
+        'u': ['v', 'v', 'v'],
+        'y': ['v']
+    }
+    e = ['v', 'u']
+    print(json.dumps(set_contraction(graph, e)))
+
+
+test_set_contraction()
+# print('vertex: ', vertex)
+# print(json.dumps(remove(data_dict, vertex), indent=4))
 # print(json.dumps(neighborhood(data_dict, vertex), indent=4))
