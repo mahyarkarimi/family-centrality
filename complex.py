@@ -1,14 +1,21 @@
+import json
+import random
+import copy
 import pandas as pd
-import json, random
 
 data = pd.read_csv('Email-Enron.csv', delimiter='	')
+
 # print([data.iloc[] for i in data.iloc[:,1] if i==1])
 # print(set(data.iloc[:,1]))
 data = data.iloc[:].values
 vertex = random.choice(data[:, 0])
-vertex = 1
 data_dict = {}
-
+test_data_dict = {
+    'v': ['a', 'b'],
+    'b': ['v', 'd'],
+    'a': ['v'],
+    'd': ['b']
+}
 '''
 make graph data model as a dictionary with nodes as keys and connected nodes list as values; e.g.
 {
@@ -26,21 +33,25 @@ for i in data:
         data_dict[key].append(value)
 
 
-def neighborhood(G: dict, v) -> dict:
+def neighborhood_graph(G: dict, v) -> dict:
     nodes = list(G.keys())
-    nodes.remove(v)  # do not consider node v in creating neighborhood for itself
+    if v in nodes:
+        nodes.remove(v)  # do not consider node v in creating neighborhood for itself
     for u in nodes:
-        if u not in G[v]:  # if u has no path to v (does not contains in its nodes connected list) then we have to remove it from graph
+        if u not in G[
+            v]:  # if u has no path to v (does not contains in its nodes connected list) then we have to remove it from graph
             G.pop(u)
     return G
 
 
 def count_all(G: dict, v) -> int:
-    if neighborhood(G, v).keys().__len__() == 0:
+    N = G.get(v, [])
+    if N.__len__() == 0:
         return 1
     else:
-        pass
-
+        u = random.choice(N)
+        return count_all(remove(copy.deepcopy(G), u), v) + (2 ** w(copy.deepcopy(G), v, u) - 1) * count_all(
+            set_contraction(copy.deepcopy(G), [v, u]), v)
 
 
 def remove(G: dict, v) -> dict:
@@ -49,11 +60,14 @@ def remove(G: dict, v) -> dict:
         # when graph does not contain node v
         print('graph does not contain node ', v)
         return G
-    v_edges = G.get(v) # get edges of node v
-    G.pop(v) # removing node v from graph
+    v_edges = G.get(v)  # get edges of node v
+    G.pop(v)  # removing node v from graph
     for u in v_edges:
         # removing edges in graph which has been connected to node v
-        G.get(u, []).remove(v)
+        try:
+            G.get(u, []).remove(v)
+        except:
+            pass
 
     return G
 
@@ -61,7 +75,7 @@ def remove(G: dict, v) -> dict:
 def set_contraction(G: dict, U: list):
     merged_U_edges = []
     for u in U:
-        u_edges = G.get(u)
+        u_edges = G.get(u, [])
         merged_U_edges.extend([i for i in u_edges if not U.__contains__(i)])
         G = remove(G, u)
 
@@ -70,6 +84,10 @@ def set_contraction(G: dict, U: list):
     for i in merged_U_edges:
         G.get(i).append(new_node_name)
     return G
+
+
+def w(G: dict, v, u):
+    return G.get(v, []).count(u)
 
 
 def test_set_contraction():
@@ -82,7 +100,10 @@ def test_set_contraction():
     print(json.dumps(set_contraction(graph, e)))
 
 
-test_set_contraction()
+a = count_all(test_data_dict, 'v')
+print(a)
+
+# test_set_contraction()
 # print('vertex: ', vertex)
 # print(json.dumps(remove(data_dict, vertex), indent=4))
 # print(json.dumps(neighborhood(data_dict, vertex), indent=4))
